@@ -3,7 +3,7 @@ import { HardhatRuntimeEnvironment, TaskArguments } from "hardhat/types";
 import { MyERC721 } from "../typechain";
 import { BigNumber } from "ethers";
 
-task("getApproved", "Gets the address approved for a specific token")
+task("tokenUriERC721", "Fetches the token URI for a specific token")
   .addParam("contract", "The address of the ERC721 contract")
   .addParam("tokenId", "The token ID")
   .setAction(
@@ -14,12 +14,9 @@ task("getApproved", "Gets the address approved for a specific token")
       const erc721: MyERC721 = <MyERC721>(
         await hre.ethers.getContractAt("MyERC721", taskArgs.contract as string)
       );
-
       const tokenId: BigNumber = taskArgs.tokenId;
-      const approvedAddress = await erc721.getApproved(tokenId);
+      const tokenURI = await erc721.tokenURI(tokenId);
 
-      console.log(
-        `Address approved for ERC721token ${tokenId}: ${approvedAddress}`
-      );
+      console.log(`Token URI for ERC721 token ${tokenId}: ${tokenURI}`);
     }
   );

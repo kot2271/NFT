@@ -2,12 +2,9 @@ import { task } from "hardhat/config";
 import { HardhatRuntimeEnvironment, TaskArguments } from "hardhat/types";
 import { MyERC721 } from "../typechain";
 
-task(
-  "supportsInterface",
-  "Checks if the contract supports a specific interface"
-)
+task("balanceOfERC721", "Checks the balance of a specific address")
   .addParam("contract", "The address of the ERC721 contract")
-  .addParam("interfaceId", "The bytes4 identifier of the interface")
+  .addParam("address", "The address to check")
   .setAction(
     async (
       taskArgs: TaskArguments,
@@ -17,13 +14,8 @@ task(
         await hre.ethers.getContractAt("MyERC721", taskArgs.contract as string)
       );
 
-      const interfaceId = taskArgs.interfaceId as string;
-
-      const isSupported = await erc721.supportsInterface(interfaceId);
-      console.log(
-        `Contract supports interface ${interfaceId}: ${
-          isSupported ? "Yes" : "No"
-        }`
-      );
+      const addressToCheck = taskArgs.address as string;
+      const balance = await erc721.balanceOf(addressToCheck);
+      console.log(`Address ${addressToCheck} holds ${balance} ERC721 tokens`);
     }
   );

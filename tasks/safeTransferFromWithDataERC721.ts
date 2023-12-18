@@ -2,10 +2,11 @@ import { task } from "hardhat/config";
 import { HardhatRuntimeEnvironment, TaskArguments } from "hardhat/types";
 import { MyERC721 } from "../typechain";
 import { BigNumber } from "ethers";
+import { encodeFunctionCall } from "web3-eth-abi";
 
 task(
-  "safeTransferFrom",
-  "Safely transfers a token from one address to another (no data)"
+  "safeTransferFromWithDataERC721",
+  "Safely transfers a token from one address to another with data"
 )
   .addParam("contract", "The address of the ERC721 contract")
   .addParam("from", "The address currently holding the token")
@@ -20,14 +21,33 @@ task(
         await hre.ethers.getContractAt("MyERC721", taskArgs.contract as string)
       );
 
+      const calldata = encodeFunctionCall(
+        {
+          name: "myMethod",
+          type: "function",
+          inputs: [
+            {
+              type: "uint256",
+              name: "myNumber",
+            },
+            {
+              type: "string",
+              name: "myString",
+            },
+          ],
+        },
+        ["2345675643", "Hello!%"]
+      );
       const addressFrom = taskArgs.from as string;
       const addressTo = taskArgs.to as string;
       const tokenId: BigNumber = taskArgs.tokenId;
+      const data = calldata || "";
 
-      await erc721["safeTransferFrom(address,address,uint256)"](
+      await erc721["safeTransferFrom(address,address,uint256,bytes)"](
         addressFrom,
         addressTo,
-        tokenId
+        tokenId,
+        data
       );
 
       const filter = erc721.filters.Transfer();
@@ -37,7 +57,7 @@ task(
       const txTokenId = events[0].args["tokenId"];
 
       console.log(
-        `ERC721 Token ${txTokenId} safely transferred from ${txAddressFrom} to ${txAddressTo}`
+        `ERC721 Token ${txTokenId} safely transferred from ${txAddressFrom} to ${txAddressTo} with data: ${data.toString()}`
       );
     }
   );

@@ -14,6 +14,7 @@ describe("MyERC721", () => {
 
     const Token = await ethers.getContractFactory("MyERC721");
     token = await Token.deploy("MyERC721", "MY721", "http://mytoken.io/");
+    token.deployed();
   });
 
   describe("deploy", () => {

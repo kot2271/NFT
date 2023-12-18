@@ -1,24 +1,25 @@
 import { task } from "hardhat/config";
 import { HardhatRuntimeEnvironment, TaskArguments } from "hardhat/types";
-import { MyERC721 } from "../typechain";
+import { MyERC1155 } from "../typechain";
 import { BigNumber } from "ethers";
 import { encodeFunctionCall } from "web3-eth-abi";
 
 task(
-  "safeTransferFromWithData",
-  "Safely transfers a token from one address to another with data"
+  "safeTransferFromERC1155",
+  "Transfers a token ID from one address to another"
 )
-  .addParam("contract", "The address of the ERC721 contract")
-  .addParam("from", "The address currently holding the token")
-  .addParam("to", "The address to receive the token")
+  .addParam("contract", "The address of the MyERC1155 contract")
+  .addParam("from", "The address sending the token")
+  .addParam("to", "The address receiving the token")
   .addParam("tokenId", "The ID of the token to transfer")
+  .addParam("amount", "The number of tokens to transfer")
   .setAction(
     async (
       taskArgs: TaskArguments,
       hre: HardhatRuntimeEnvironment
     ): Promise<void> => {
-      const erc721: MyERC721 = <MyERC721>(
-        await hre.ethers.getContractAt("MyERC721", taskArgs.contract as string)
+      const erc1155: MyERC1155 = <MyERC1155>(
+        await hre.ethers.getContractAt("MyERC1155", taskArgs.contract as string)
       );
 
       const calldata = encodeFunctionCall(
@@ -38,26 +39,23 @@ task(
         },
         ["2345675643", "Hello!%"]
       );
+
       const addressFrom = taskArgs.from as string;
       const addressTo = taskArgs.to as string;
-      const tokenId: BigNumber = taskArgs.tokenId;
+      const tokenId = taskArgs.tokenId as BigNumber;
+      const amount = taskArgs.amount as BigNumber;
       const data = calldata || "";
 
-      await erc721["safeTransferFrom(address,address,uint256,bytes)"](
+      await erc1155.safeTransferFrom(
         addressFrom,
         addressTo,
         tokenId,
+        amount,
         data
       );
 
-      const filter = erc721.filters.Transfer();
-      const events = await erc721.queryFilter(filter);
-      const txAddressFrom = events[0].args["from"];
-      const txAddressTo = events[0].args["to"];
-      const txTokenId = events[0].args["tokenId"];
-
       console.log(
-        `ERC721 Token ${txTokenId} safely transferred from ${txAddressFrom} to ${txAddressTo} with data: ${data.toString()}`
+        `Transferred ${amount} ERC1155 token(s) of ID ${tokenId} from ${addressFrom} to ${addressTo}`
       );
     }
   );

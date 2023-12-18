@@ -3,9 +3,9 @@ import { HardhatRuntimeEnvironment, TaskArguments } from "hardhat/types";
 import { MyERC721 } from "../typechain";
 import { BigNumber } from "ethers";
 
-task("burn", "Burns a specific token")
+task("ownerOfERC721", "Shows the owner of a specific token")
   .addParam("contract", "The address of the ERC721 contract")
-  .addParam("tokenId", "The token ID")
+  .addParam("tokenId", "The ID of the token")
   .setAction(
     async (
       taskArgs: TaskArguments,
@@ -16,13 +16,7 @@ task("burn", "Burns a specific token")
       );
 
       const tokenId: BigNumber = taskArgs.tokenId;
-
-      await erc721.burn(tokenId);
-
-      const filter = erc721.filters.Transfer();
-      const events = await erc721.queryFilter(filter);
-      const txTokenId = events[0].args["tokenId"];
-
-      console.log(`ERC721 Token ${txTokenId} successfully burned`);
+      const owner = await erc721.ownerOf(tokenId);
+      console.log(`ERC721 Token ${tokenId} is owned by address ${owner}`);
     }
   );

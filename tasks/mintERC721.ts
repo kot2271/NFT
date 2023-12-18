@@ -3,11 +3,10 @@ import { HardhatRuntimeEnvironment, TaskArguments } from "hardhat/types";
 import { MyERC721 } from "../typechain";
 import { BigNumber } from "ethers";
 
-task("transferFrom", "Transfers a token from one address to another")
+task("mintERC721", "Mints a new token to a specific address")
   .addParam("contract", "The address of the ERC721 contract")
-  .addParam("from", "The address currently holding the token")
+  .addParam("tokenId", "The token ID to mint")
   .addParam("to", "The address to receive the token")
-  .addParam("tokenId", "The ID of the token to transfer")
   .setAction(
     async (
       taskArgs: TaskArguments,
@@ -17,20 +16,17 @@ task("transferFrom", "Transfers a token from one address to another")
         await hre.ethers.getContractAt("MyERC721", taskArgs.contract as string)
       );
 
-      const addressFrom = taskArgs.from as string;
       const addressTo = taskArgs.to as string;
       const tokenId: BigNumber = taskArgs.tokenId;
-
-      await erc721.transferFrom(addressFrom, addressTo, tokenId);
+      await erc721.mint(addressTo, tokenId);
 
       const filter = erc721.filters.Transfer();
       const events = await erc721.queryFilter(filter);
-      const txAddressFrom = events[0].args["from"];
-      const txAddressTo = events[0].args["to"];
       const txTokenId = events[0].args["tokenId"];
+      const txAddressTo = events[0].args["to"];
 
       console.log(
-        `ERC721 Token ${txTokenId} transferred from ${txAddressFrom} to ${txAddressTo}`
+        `ERC721 Token with ID ${txTokenId} minted for address ${txAddressTo}`
       );
     }
   );

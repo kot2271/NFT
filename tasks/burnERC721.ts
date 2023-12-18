@@ -1,10 +1,11 @@
 import { task } from "hardhat/config";
 import { HardhatRuntimeEnvironment, TaskArguments } from "hardhat/types";
 import { MyERC721 } from "../typechain";
+import { BigNumber } from "ethers";
 
-task("balanceOf", "Checks the balance of a specific address")
+task("burnERC721", "Burns a specific token")
   .addParam("contract", "The address of the ERC721 contract")
-  .addParam("address", "The address to check")
+  .addParam("tokenId", "The token ID")
   .setAction(
     async (
       taskArgs: TaskArguments,
@@ -14,8 +15,14 @@ task("balanceOf", "Checks the balance of a specific address")
         await hre.ethers.getContractAt("MyERC721", taskArgs.contract as string)
       );
 
-      const addressToCheck = taskArgs.address as string;
-      const balance = await erc721.balanceOf(addressToCheck);
-      console.log(`Address ${addressToCheck} holds ${balance} ERC721 tokens`);
+      const tokenId: BigNumber = taskArgs.tokenId;
+
+      await erc721.burn(tokenId);
+
+      const filter = erc721.filters.Transfer();
+      const events = await erc721.queryFilter(filter);
+      const txTokenId = events[0].args["tokenId"];
+
+      console.log(`ERC721 Token ${txTokenId} successfully burned`);
     }
   );

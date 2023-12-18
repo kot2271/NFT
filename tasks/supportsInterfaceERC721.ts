@@ -3,12 +3,11 @@ import { HardhatRuntimeEnvironment, TaskArguments } from "hardhat/types";
 import { MyERC721 } from "../typechain";
 
 task(
-  "isApprovedForAll",
-  "Checks if an address is approved for all tokens of a specific owner"
+  "supportsInterfaceERC721",
+  "Checks if the contract supports a specific interface"
 )
   .addParam("contract", "The address of the ERC721 contract")
-  .addParam("owner", "The token owner address")
-  .addParam("operator", "The address to check for approval")
+  .addParam("interfaceId", "The bytes4 identifier of the interface")
   .setAction(
     async (
       taskArgs: TaskArguments,
@@ -18,14 +17,13 @@ task(
         await hre.ethers.getContractAt("MyERC721", taskArgs.contract as string)
       );
 
-      const owner = taskArgs.owner as string;
-      const operator = taskArgs.operator as string;
+      const interfaceId = taskArgs.interfaceId as string;
 
-      const isApproved = await erc721.isApprovedForAll(owner, operator);
+      const isSupported = await erc721.supportsInterface(interfaceId);
       console.log(
-        `Operatror ${operator} is ${
-          isApproved ? "approved" : "not approved"
-        } for all ERC721 tokens of ${owner}`
+        `Contract supports interface ${interfaceId}: ${
+          isSupported ? "Yes" : "No"
+        }`
       );
     }
   );

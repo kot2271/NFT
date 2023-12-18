@@ -4,7 +4,7 @@ import { MyERC721 } from "../typechain";
 import { BigNumber } from "ethers";
 
 task(
-  "approve",
+  "approveERC721",
   "Grants another address permission to transfer a specific token"
 )
   .addParam("contract", "The address of the ERC721 contract")

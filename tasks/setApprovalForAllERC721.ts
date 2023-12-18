@@ -3,7 +3,7 @@ import { HardhatRuntimeEnvironment, TaskArguments } from "hardhat/types";
 import { MyERC721 } from "../typechain";
 
 task(
-  "setApprovalForAll",
+  "setApprovalForAllERC721",
   "Grants approval for all tokens to a specific address"
 )
   .addParam("contract", "The address of the ERC721 contract")
