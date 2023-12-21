@@ -10,7 +10,7 @@ import "@openzeppelin/contracts/utils/introspection/IERC165.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 
 /**
- * @title MyERC721 
+ * @title MyERC721
  * @dev This contract implements the ERC721 standard for non-fungible tokens.
  */
 contract MyERC721 is Context, IERC165, IERC721, IERC721Metadata, Ownable {
@@ -118,13 +118,11 @@ contract MyERC721 is Context, IERC165, IERC721, IERC721Metadata, Ownable {
      * @param tokenId The token identifier.
      */
     function approve(address to, uint256 tokenId) public virtual override {
+        require(to != address(0), "Approve to the zero address");
         address owner = ownerOf(tokenId);
         require(to != owner, "Approval to current owner");
 
-        require(
-            _msgSender() == owner || isApprovedForAll(owner, _msgSender()),
-            "Not authorized"
-        );
+        require(_msgSender() == owner, "Not authorized");
 
         _tokenApprovals[tokenId] = to;
         emit Approval(owner, to, tokenId);
@@ -288,7 +286,7 @@ contract MyERC721 is Context, IERC165, IERC721, IERC721Metadata, Ownable {
     function _transfer(address from, address to, uint256 tokenId) internal {
         require(to != address(0), "Invalid address");
 
-        _approve(to, tokenId);
+        _approve(address(0), tokenId);
 
         _balances[from]--;
         _balances[to]++;

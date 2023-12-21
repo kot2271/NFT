@@ -56,7 +56,10 @@ contract MyERC1155 is Context, IERC165, IERC1155, IERC1155MetadataURI, Ownable {
         address owner,
         uint256 id
     ) public view virtual override returns (uint256) {
-        require((owner != address(0)), "ERC1155: address zero is not a valid owner");
+        require(
+            (owner != address(0)),
+            "ERC1155: address zero is not a valid owner"
+        );
         return _balances[owner][id];
     }
 
@@ -105,7 +108,7 @@ contract MyERC1155 is Context, IERC165, IERC1155, IERC1155MetadataURI, Ownable {
         bool approved
     ) public virtual override {
         require(
-            owner() != operator,
+            msg.sender != operator,
             "ERC1155: setting approval status for self"
         );
         _operatorApprovals[msg.sender][operator] = approved;

@@ -161,11 +161,19 @@ describe("MyERC721", () => {
       expect(await token.getApproved(1)).to.equal(user1.address);
     });
 
-    it("Should set approval when operator approved", async () => {
+    it("Should set approval when owner mint token", async () => {
       await token.mint(owner.address, 1);
       await token.setApprovalForAll(user1.address, true);
-      await token.connect(user1).approve(user2.address, 1);
-      expect(await token.getApproved(1)).to.equal(user2.address);
+      expect(
+        await token.isApprovedForAll(owner.address, user1.address)
+      ).to.equal(true);
+    });
+
+    it("Should revert for approve to the zero address", async () => {
+      await token.mint(owner.address, 1);
+      await expect(
+        token.approve(ethers.constants.AddressZero, 1)
+      ).to.be.revertedWith("Approve to the zero address");
     });
 
     it("Should revert for non-existent token", async () => {
