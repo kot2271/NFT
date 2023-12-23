@@ -10,11 +10,13 @@ describe("MyERC1155", () => {
   let user1: SignerWithAddress;
   let user2: SignerWithAddress;
 
+  const tokenURI = "http://mytoken.io/";
+
   beforeEach(async () => {
     [owner, user1, user2] = await ethers.getSigners();
 
     const Token = await ethers.getContractFactory("MyERC1155");
-    token = await Token.deploy("MyERC1155", "http://mytoken.io/");
+    token = await Token.deploy("MyERC1155", "MY1155");
     token.deployed();
 
     receiverMock = await (
@@ -29,17 +31,22 @@ describe("MyERC1155", () => {
     });
 
     it("sets base URI", async () => {
+      await token.mint(owner.address, 1, 1, tokenURI);
       const uri = await token.uri(1);
-      expect(uri).to.equal("http://mytoken.io/1");
+      expect(uri).to.equal("http://mytoken.io/");
     });
   });
 
   describe("uri", () => {
+    const token1Uri = "http://mytoken1.io/";
+    const token2Uri = "http://mytoken2.io/";
     it("should return the correct URI for various token IDs", async () => {
+      await token.mint(owner.address, 1, 1, token1Uri);
+      await token.mint(owner.address, 2, 1, token2Uri);
       const uri1 = await token.uri(1);
       const uri2 = await token.uri(2);
-      expect(uri1).to.equal("http://mytoken.io/1");
-      expect(uri2).to.equal("http://mytoken.io/2");
+      expect(uri1).to.equal(token1Uri);
+      expect(uri2).to.equal(token2Uri);
     });
   });
 
@@ -75,7 +82,7 @@ describe("MyERC1155", () => {
 
     it("should return the correct balance of tokens for an address", async () => {
       // Mint some tokens for account1
-      await token.mint(user1.address, 1, 10);
+      await token.mint(user1.address, 1, 10, tokenURI);
 
       // Check the balance of account1 for token ID 1
       const balance = await token.balanceOf(user1.address, 1);
@@ -85,8 +92,8 @@ describe("MyERC1155", () => {
 
   describe("balanceOfBatch", () => {
     it("should return balances for multiple token IDs for different accounts", async () => {
-      await token.mint(owner.address, 11, 10);
-      await token.mint(user1.address, 12, 5);
+      await token.mint(owner.address, 11, 10, tokenURI);
+      await token.mint(user1.address, 12, 5, tokenURI);
       const balances = await token.balanceOfBatch(
         [owner.address, user1.address],
         [11, 12]
@@ -102,8 +109,8 @@ describe("MyERC1155", () => {
     });
 
     it("should revert 'balanceOfBatch' with address zero", async () => {
-      await token.mint(owner.address, 11, 10);
-      await token.mint(user1.address, 12, 5);
+      await token.mint(owner.address, 11, 10, tokenURI);
+      await token.mint(user1.address, 12, 5, tokenURI);
       await expect(
         token.balanceOfBatch(
           [owner.address, ethers.constants.AddressZero],
@@ -115,30 +122,30 @@ describe("MyERC1155", () => {
 
   describe("mint", () => {
     it("should mint tokens for different accounts and token IDs", async () => {
-      await token.mint(user1.address, 1, 10);
+      await token.mint(user1.address, 1, 10, tokenURI);
       const balance1 = await token.balanceOf(user1.address, 1);
       expect(balance1).to.equal(10);
 
-      await token.mint(user2.address, 2, 5);
+      await token.mint(user2.address, 2, 5, tokenURI);
       const balance2 = await token.balanceOf(user2.address, 2);
       expect(balance2).to.equal(5);
     });
 
     it("should revert when caller is not the owner", async () => {
       await expect(
-        token.connect(user1).mint(user1.address, 1, 10)
+        token.connect(user1).mint(user1.address, 1, 10, tokenURI)
       ).to.be.revertedWith("Ownable: caller is not the owner");
     });
 
     it("should revert when mint to zero address", async () => {
       const AddressZero = ethers.constants.AddressZero;
-      await expect(token.mint(AddressZero, 1, 10)).to.be.revertedWith(
+      await expect(token.mint(AddressZero, 1, 10, tokenURI)).to.be.revertedWith(
         "ERC1155: 'to' is zero address"
       );
     });
 
     it("should revert when value is zero", async () => {
-      await expect(token.mint(owner.address, 1, 0)).to.be.revertedWith(
+      await expect(token.mint(owner.address, 1, 0, tokenURI)).to.be.revertedWith(
         "ERC1155: Value must be greater than 0"
       );
     });
@@ -146,7 +153,7 @@ describe("MyERC1155", () => {
 
   describe("burn", () => {
     it("should burn tokens for different accounts and token IDs", async () => {
-      await token.mint(user1.address, 1, 10);
+      await token.mint(user1.address, 1, 10, tokenURI);
       const balance1 = await token.balanceOf(user1.address, 1);
       expect(balance1).to.equal(10);
 
@@ -156,14 +163,14 @@ describe("MyERC1155", () => {
     });
 
     it("should revert when insufficient balance", async () => {
-      await token.mint(user1.address, 1, 1);
+      await token.mint(user1.address, 1, 1, tokenURI);
       await expect(token.burn(user1.address, 1, 2)).to.be.revertedWith(
         "ERC1155: insufficient balance"
       );
     });
 
     it("should revert burning for caller is not the owner", async () => {
-      await token.mint(owner.address, 4, 15);
+      await token.mint(owner.address, 4, 15, tokenURI);
       await expect(
         token.connect(user1).burn(owner.address, 4, 5)
       ).to.be.revertedWith("Ownable: caller is not the owner");
@@ -188,7 +195,7 @@ describe("MyERC1155", () => {
     });
 
     it("should revert transfer for caller is not the owner", async () => {
-      await token.mint(owner.address, 1, 2);
+      await token.mint(owner.address, 1, 2, tokenURI);
       const unauthorizedContract = await (
         await ethers.getContractFactory("InvalidERC1155Receiver")
       ).deploy();
@@ -211,7 +218,7 @@ describe("MyERC1155", () => {
       const tokenId = 2;
       const data = ethers.utils.formatBytes32String("bar");
       // Mint some tokens for owner
-      await token.mint(owner.address, tokenId, 5);
+      await token.mint(owner.address, tokenId, 5, tokenURI);
 
       // Approve account1 to transfer tokens on behalf of owner
       await token.connect(owner).setApprovalForAll(user1.address, true);
@@ -232,7 +239,7 @@ describe("MyERC1155", () => {
       const invalidContract = await (
         await ethers.getContractFactory("InvalidERC1155Receiver")
       ).deploy();
-      await token.mint(user1.address, 1, 1);
+      await token.mint(user1.address, 1, 1, tokenURI);
 
       await expect(
         token
@@ -252,7 +259,7 @@ describe("MyERC1155", () => {
     it("Should allow ERC1155Receiver contract receive", async () => {
       const data = ethers.utils.formatBytes32String("bar");
 
-      await token.mint(owner.address, 1, 1);
+      await token.mint(owner.address, 1, 1, tokenURI);
 
       await expect(
         token
@@ -265,7 +272,7 @@ describe("MyERC1155", () => {
 
     it("should revert 'safeTransferFrom' with insufficient balance", async () => {
       const data = ethers.utils.formatBytes32String("bar");
-      await token.mint(owner.address, 2, 2);
+      await token.mint(owner.address, 2, 2, tokenURI);
       await expect(
         token
           .connect(user1)
@@ -276,7 +283,7 @@ describe("MyERC1155", () => {
     it("should revert 'safeTransferFrom' with zero address recipient", async () => {
       const data = ethers.utils.formatBytes32String("bar");
       const AddressZero = ethers.constants.AddressZero;
-      await token.mint(owner.address, 7, 3);
+      await token.mint(owner.address, 7, 3, tokenURI);
       await expect(
         token.safeTransferFrom(owner.address, AddressZero, 7, 2, data)
       ).to.be.revertedWith("ERC1155: transfer to zero address");
@@ -287,8 +294,8 @@ describe("MyERC1155", () => {
     const data1 = ethers.utils.formatBytes32String("foo");
     const data2 = ethers.utils.formatBytes32String("bar");
     it("should handle batch transfers with various data parameters and sizes", async () => {
-      await token.mint(owner.address, 9, 12);
-      await token.mint(owner.address, 10, 8);
+      await token.mint(owner.address, 9, 12, tokenURI);
+      await token.mint(owner.address, 10, 8, tokenURI);
       await token.safeBatchTransferFrom(
         owner.address,
         user1.address,
@@ -314,8 +321,8 @@ describe("MyERC1155", () => {
     });
 
     it("should revert when mismatched IDs and values lengths", async () => {
-      await token.mint(owner.address, 1, 2);
-      await token.mint(owner.address, 2, 2);
+      await token.mint(owner.address, 1, 2, tokenURI);
+      await token.mint(owner.address, 2, 2, tokenURI);
       await expect(
         token.safeBatchTransferFrom(
           owner.address,
@@ -328,7 +335,7 @@ describe("MyERC1155", () => {
     });
 
     it("should revert 'safeBatchTransferFrom' with insufficient balance", async () => {
-      await token.mint(owner.address, 15, 3);
+      await token.mint(owner.address, 15, 3, tokenURI);
       await expect(
         token.safeBatchTransferFrom(
           owner.address,
@@ -341,7 +348,7 @@ describe("MyERC1155", () => {
     });
 
     it("should revert 'safeBatchTransferFrom' with zero address recipient", async () => {
-      await token.mint(owner.address, 16, 7);
+      await token.mint(owner.address, 16, 7, tokenURI);
       await expect(
         token.safeBatchTransferFrom(
           owner.address,
@@ -357,7 +364,7 @@ describe("MyERC1155", () => {
       const invalidContract = await (
         await ethers.getContractFactory("InvalidERC1155Receiver")
       ).deploy();
-      await token.mint(owner.address, 3, 7);
+      await token.mint(owner.address, 3, 7, tokenURI);
       await expect(
         token.safeBatchTransferFrom(
           owner.address,
@@ -372,7 +379,7 @@ describe("MyERC1155", () => {
     });
 
     it("should revert with zero address recipient", async () => {
-      await token.mint(owner.address, 4, 9);
+      await token.mint(owner.address, 4, 9, tokenURI);
       await expect(
         token.safeBatchTransferFrom(
           owner.address,
@@ -385,7 +392,7 @@ describe("MyERC1155", () => {
     });
 
     it("should revert with insufficient balance", async () => {
-      await token.mint(owner.address, 5, 3);
+      await token.mint(owner.address, 5, 3, tokenURI);
       await expect(
         token.safeBatchTransferFrom(
           owner.address,
@@ -398,8 +405,8 @@ describe("MyERC1155", () => {
     });
 
     it("Should allow ERC1155BatchReceived contract receive", async () => {
-      await token.mint(owner.address, 9, 12);
-      await token.mint(owner.address, 10, 8);
+      await token.mint(owner.address, 9, 12, tokenURI);
+      await token.mint(owner.address, 10, 8, tokenURI);
       await expect(
         token.safeBatchTransferFrom(
           owner.address,
@@ -422,14 +429,14 @@ describe("MyERC1155", () => {
 
   describe("approval", () => {
     it("should revert 'setApprovalForAll' with approval for self", async () => {
-      await token.mint(owner.address, 2, 2);
+      await token.mint(owner.address, 2, 2, tokenURI);
       await expect(
         token.setApprovalForAll(owner.address, true)
       ).to.be.revertedWith("ERC1155: setting approval status for self");
     });
 
     it("should set individual approvals for specific operators and tokens", async () => {
-      await token.mint(owner.address, 5, 7);
+      await token.mint(owner.address, 5, 7, tokenURI);
       await token.setApprovalForAll(user1.address, true);
       await token.setApprovalForAll(user2.address, true);
       const approved1 = await token.isApprovedForAll(
@@ -445,7 +452,7 @@ describe("MyERC1155", () => {
     });
 
     it("should revoke and check approval status", async () => {
-      await token.mint(owner.address, 6, 8);
+      await token.mint(owner.address, 6, 8, tokenURI);
       await token.setApprovalForAll(user1.address, true);
       await token.setApprovalForAll(user1.address, false);
       const approved = await token.isApprovedForAll(

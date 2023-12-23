@@ -2,12 +2,12 @@ import { getNamedAccounts, deployments } from "hardhat";
 import { verify } from "../helpers/verify";
 
 const TOKEN_NAME = "MyERC1155";
-const TOKEN_URI = "http://mytoken.io/";
+const TOKEN_SYMBOL = "MY1155";
 
 async function deployFunction() {
   const { deploy } = deployments;
   const { deployer } = await getNamedAccounts();
-  const tokenArgs = [TOKEN_NAME, TOKEN_URI];
+  const tokenArgs = [TOKEN_NAME, TOKEN_SYMBOL];
   const token = await deploy(TOKEN_NAME, {
     from: deployer,
     log: true,

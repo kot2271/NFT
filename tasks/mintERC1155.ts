@@ -8,6 +8,7 @@ task("mintERC1155", "Mints a specific token ID to an address")
   .addParam("tokenId", "The ID of the token to mint")
   .addParam("to", "The address to receive the minted token")
   .addParam("amount", "The number of tokens to mint")
+  .addParam("tokenUri", "The token URI for a specific token")
   .setAction(
     async (
       taskArgs: TaskArguments,
@@ -20,8 +21,9 @@ task("mintERC1155", "Mints a specific token ID to an address")
       const addressTo = taskArgs.to as string;
       const tokenId = taskArgs.tokenId as BigNumber;
       const amount = taskArgs.amount as BigNumber;
+      const tokenURI = taskArgs.tokenUri as string;
 
-      await erc1155.mint(addressTo, tokenId, amount);
+      await erc1155.mint(addressTo, tokenId, amount, tokenURI);
 
       console.log(
         `Minted ${amount} ERC1155 token(s) with ID ${tokenId} to address ${addressTo}`

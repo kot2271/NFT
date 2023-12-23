@@ -10,6 +10,10 @@ npm i
 
 # ERC721 Token
 
+[![OpenSea](https://img.shields.io/badge/check_the_NFT_in_OpenSea-f2f3f4?style=flat&logo=opensea)](https://testnets.opensea.io/collection/myerc721-39)
+
+[![Mumbai](https://img.shields.io/badge/check_the_contract_in_mumbai.polygonscan-9966cc?style=flat&logo=ethereum)](https://mumbai.polygonscan.com/address/0x71c4a39fBc494E27d969A62d36e95373B6317B0d)
+
 ## Deployment
 
 Fill in all the required environment variables(copy .env-example to .env and fill it). 
@@ -32,7 +36,7 @@ Create a new task(s) and save it(them) in the folder "tasks". Add a new task_nam
 
 Running a mint task:
 ```shell
-npx hardhat mintERC721 --contract {ERC721_CONTRACT_ADDRESS} --token-id {TOKEN_ID} --to {ADDRESS_TO_RECEIVE_TOKEN} --network polygonMumbai
+npx hardhat mintERC721 --contract {ERC721_CONTRACT_ADDRESS} --token-id {TOKEN_ID} --to {ADDRESS_TO_RECEIVE_TOKEN} --token-uri {TOKEN_URI} --network polygonMumbai
 ```
 
 Running a burn task:
@@ -97,6 +101,10 @@ npx hardhat supportsInterfaceERC721 --contract {ERC721_CONTRACT_ADDRESS} --inter
 
 # ERC1155 Token
 
+[![OpenSea](https://img.shields.io/badge/check_the_NFT_in_OpenSea-f2f3f4?style=flat&logo=opensea)](https://testnets.opensea.io/collection/unidentified-contract-23ca945e-beb3-4eed-a577-82b3)
+
+[![Mumbai](https://img.shields.io/badge/check_the_contract_in_mumbai.polygonscan-9966cc?style=flat&logo=ethereum)](https://mumbai.polygonscan.com/address/0x7B4d25e0DD2DcA44Ae850CC1E2dFeAF98b436027)
+
 ## Deployment
 
 Fill in all the required environment variables(copy .env-example to .env and fill it). 
@@ -119,7 +127,7 @@ Create a new task(s) and save it(them) in the folder "tasks". Add a new task_nam
 
 Running a mint task:
 ```shell
-npx hardhat mintERC1155 --contract {ERC1155_CONTRACT_ADDRESS} --token-id {TOKEN_ID} --to {ADDRESS_TO_RECEIVE_TOKEN} --amount {NUMBER_OF_TOKENS} --network polygonMumbai
+npx hardhat mintERC1155 --contract {ERC1155_CONTRACT_ADDRESS} --token-id {TOKEN_ID} --to {ADDRESS_TO_RECEIVE_TOKEN} --amount {NUMBER_OF_TOKENS} --token-uri {TOKEN_URI} --network polygonMumbai
 ```
 
 Running a balanceOf task:
@@ -161,3 +169,5 @@ Running a tokenURI task:
 ```shell
 npx hardhat tokenUriERC1155 --contract {ERC1155_CONTRACT_ADDRESS} --token-id {TOKEN_ID} --network polygonMumbai
 ```
+
+MyERC1155_Contract: 0x7B4d25e0DD2DcA44Ae850CC1E2dFeAF98b436027

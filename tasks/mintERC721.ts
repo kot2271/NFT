@@ -7,6 +7,7 @@ task("mintERC721", "Mints a new token to a specific address")
   .addParam("contract", "The address of the ERC721 contract")
   .addParam("tokenId", "The token ID to mint")
   .addParam("to", "The address to receive the token")
+  .addParam("tokenUri", "The token URI for a specific token")
   .setAction(
     async (
       taskArgs: TaskArguments,
@@ -15,10 +16,11 @@ task("mintERC721", "Mints a new token to a specific address")
       const erc721: MyERC721 = <MyERC721>(
         await hre.ethers.getContractAt("MyERC721", taskArgs.contract as string)
       );
-
+      
       const addressTo = taskArgs.to as string;
       const tokenId: BigNumber = taskArgs.tokenId;
-      await erc721.mint(addressTo, tokenId);
+      const tokenURI = taskArgs.tokenUri as string;
+      await erc721.mint(addressTo, tokenId, tokenURI);
 
       const filter = erc721.filters.Transfer();
       const events = await erc721.queryFilter(filter);

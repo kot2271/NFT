@@ -21,18 +21,21 @@ contract MyERC1155 is Context, IERC165, IERC1155, IERC1155MetadataURI, Ownable {
     // Mapping for operator approvals
     mapping(address => mapping(address => bool)) private _operatorApprovals;
 
-    // Base URI for token metadata
-    string private _baseURI;
+    // Mapping from token ID to token URI
+    mapping(uint256 => string) private _tokenURIs;
 
     // Name of the token
     string private _name;
 
+    // Token symbol
+    string private _symbol;
+
     /**
      * @dev Constructor to set the base URI.
      */
-    constructor(string memory name_, string memory baseURI_) Ownable() {
+    constructor(string memory name_, string memory symbol_) Ownable() {
         _name = name_;
-        _baseURI = baseURI_;
+        _symbol = symbol_;
     }
 
     function supportsInterface(
@@ -93,7 +96,7 @@ contract MyERC1155 is Context, IERC165, IERC1155, IERC1155MetadataURI, Ownable {
     function uri(
         uint256 id
     ) public view virtual override returns (string memory) {
-        return string(abi.encodePacked(_baseURI, Strings.toString(id)));
+        return _tokenURIs[id];
     }
 
     // ERC1155 approval functions
@@ -195,9 +198,10 @@ contract MyERC1155 is Context, IERC165, IERC1155, IERC1155MetadataURI, Ownable {
      * @param id ID of the token to mint.
      * @param value Number of tokens to mint.
      */
-    function mint(address to, uint256 id, uint256 value) external onlyOwner {
+    function mint(address to, uint256 id, uint256 value, string memory tokenURI) external onlyOwner {
         require(to != address(0), "ERC1155: 'to' is zero address");
         require(value > 0, "ERC1155: Value must be greater than 0");
+        _tokenURIs[id] = tokenURI;
         _balances[to][id] += value;
         emit TransferSingle(msg.sender, address(0), to, id, value);
 

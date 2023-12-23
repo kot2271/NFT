@@ -9,11 +9,13 @@ describe("MyERC721", () => {
   let user1: SignerWithAddress;
   let user2: SignerWithAddress;
 
+  const tokenURI = "http://mytoken.io/";
+
   beforeEach(async () => {
     [owner, user1, user2] = await ethers.getSigners();
 
     const Token = await ethers.getContractFactory("MyERC721");
-    token = await Token.deploy("MyERC721", "MY721", "http://mytoken.io/");
+    token = await Token.deploy("MyERC721", "MY721");
     token.deployed();
   });
 
@@ -35,57 +37,56 @@ describe("MyERC721", () => {
     });
 
     it("Should return token URI", async () => {
-      await token.mint(owner.address, 1);
+      await token.mint(owner.address, 1, tokenURI);
       const uri = await token.tokenURI(1);
-      const expectedUri = "http://mytoken.io/1";
-      expect(uri).to.equal(expectedUri);
+      expect(uri).to.equal(tokenURI);
     });
   });
 
   describe("mint", () => {
     it("Should mint token", async () => {
-      await token.mint(user1.address, 1);
+      await token.mint(user1.address, 1, tokenURI);
       expect(await token.ownerOf(1)).to.equal(user1.address);
       expect(await token.balanceOf(user1.address)).to.equal(1);
     });
 
     it("Should revert if `to` address is invalid (zero address)", async () => {
       await expect(
-        token.connect(owner).mint(ethers.constants.AddressZero, 1)
+        token.connect(owner).mint(ethers.constants.AddressZero, 1, tokenURI)
       ).to.be.revertedWith("Invalid address");
     });
 
     it("Should revert if token with given ID already exists", async () => {
-      await token.connect(owner).mint(user1.address, 1);
+      await token.connect(owner).mint(user1.address, 1, tokenURI);
       await expect(
-        token.connect(owner).mint(user2.address, 1)
+        token.connect(owner).mint(user2.address, 1, tokenURI)
       ).to.be.revertedWith("Token already exists");
     });
 
     it("Should revert mint if caller is not the owner", async () => {
       await expect(
-        token.connect(user1).mint(user2.address, 1)
+        token.connect(user1).mint(user2.address, 1, tokenURI)
       ).to.be.revertedWith("Ownable: caller is not the owner");
     });
   });
 
   describe("burn", () => {
     it("Should burn token", async () => {
-      await token.mint(user1.address, 1);
+      await token.mint(user1.address, 1, tokenURI);
       await token.connect(owner).burn(1);
       expect(await token.balanceOf(user1.address)).to.equal(0);
       await expect(token.ownerOf(1)).to.be.revertedWith("Invalid token ID");
     });
 
     it("Should be reverted when caller is not the owner", async () => {
-      await token.mint(user1.address, 1);
+      await token.mint(user1.address, 1, tokenURI);
       await expect(token.connect(user1).burn(1)).to.be.revertedWith(
         "Ownable: caller is not the owner"
       );
     });
 
     it("Should revert for non-existent token", async () => {
-      await token.mint(owner.address, 1);
+      await token.mint(owner.address, 1, tokenURI);
       await expect(token.burn(2)).to.be.revertedWith("Nonexistent token");
     });
   });
@@ -96,9 +97,8 @@ describe("MyERC721", () => {
     });
 
     it("Should return metadata URI", async () => {
-      await token.mint(owner.address, 1);
-      const uri = "http://mytoken.io/1";
-      expect(await token.tokenURI(1)).to.equal(uri);
+      await token.mint(owner.address, 1, tokenURI);
+      expect(await token.tokenURI(1)).to.equal(tokenURI);
     });
   });
 
@@ -108,8 +108,8 @@ describe("MyERC721", () => {
     });
 
     it("Should return count after minting", async () => {
-      await token.mint(user1.address, 1);
-      await token.mint(user1.address, 2);
+      await token.mint(user1.address, 1, tokenURI);
+      await token.mint(user1.address, 2, tokenURI);
       expect(await token.balanceOf(user1.address)).to.equal(2);
     });
 
@@ -122,7 +122,7 @@ describe("MyERC721", () => {
 
   describe("approve", () => {
     it("Should approve account", async () => {
-      await token.mint(owner.address, 1);
+      await token.mint(owner.address, 1, tokenURI);
       await token.approve(user1.address, 1);
       expect(await token.getApproved(1)).to.equal(user1.address);
     });
@@ -135,34 +135,34 @@ describe("MyERC721", () => {
     });
 
     it("Should revert when approving to current owner", async () => {
-      await token.mint(owner.address, 1);
+      await token.mint(owner.address, 1, tokenURI);
       await expect(token.approve(owner.address, 1)).to.be.revertedWith(
         "Approval to current owner"
       );
     });
 
     it("Should revert when not owner or approved for all", async () => {
-      await token.mint(owner.address, 1);
+      await token.mint(owner.address, 1, tokenURI);
       await expect(
         token.connect(user1).approve(user2.address, 1)
       ).to.be.revertedWith("Not authorized");
     });
 
     it("Should revert when owner is operator", async () => {
-      await token.mint(owner.address, 1);
+      await token.mint(owner.address, 1, tokenURI);
       await expect(
         token.connect(owner).setApprovalForAll(owner.address, true)
       ).to.be.revertedWith("Approve to caller");
     });
 
     it("Should set approval when owner", async () => {
-      await token.mint(owner.address, 1);
+      await token.mint(owner.address, 1, tokenURI);
       await token.approve(user1.address, 1);
       expect(await token.getApproved(1)).to.equal(user1.address);
     });
 
     it("Should set approval when owner mint token", async () => {
-      await token.mint(owner.address, 1);
+      await token.mint(owner.address, 1, tokenURI);
       await token.setApprovalForAll(user1.address, true);
       expect(
         await token.isApprovedForAll(owner.address, user1.address)
@@ -170,7 +170,7 @@ describe("MyERC721", () => {
     });
 
     it("Should revert for approve to the zero address", async () => {
-      await token.mint(owner.address, 1);
+      await token.mint(owner.address, 1, tokenURI);
       await expect(
         token.approve(ethers.constants.AddressZero, 1)
       ).to.be.revertedWith("Approve to the zero address");
@@ -183,26 +183,26 @@ describe("MyERC721", () => {
     });
 
     it("Should return approved address after approval", async () => {
-      await token.mint(owner.address, 1);
+      await token.mint(owner.address, 1, tokenURI);
       await token.approve(user1.address, 1);
       expect(await token.getApproved(1)).to.equal(user1.address);
     });
 
     it("Should return zero address without approval", async () => {
-      await token.mint(owner.address, 1);
+      await token.mint(owner.address, 1, tokenURI);
       expect(await token.getApproved(1)).to.equal(ethers.constants.AddressZero);
     });
   });
 
   describe("transferFrom", () => {
     it("Should transfer token", async () => {
-      await token.mint(owner.address, 1);
+      await token.mint(owner.address, 1, tokenURI);
       await token.transferFrom(owner.address, user1.address, 1);
       expect(await token.ownerOf(1)).to.equal(user1.address);
     });
 
     it("Should fail if not owner or approved", async () => {
-      await token.mint(owner.address, 1);
+      await token.mint(owner.address, 1, tokenURI);
       await expect(
         token.connect(user1).transferFrom(owner.address, user1.address, 1)
       ).to.be.revertedWith("Not approved");
@@ -215,35 +215,35 @@ describe("MyERC721", () => {
     });
 
     it("Should fail if transferring to zero address", async () => {
-      await token.mint(owner.address, 1);
+      await token.mint(owner.address, 1, tokenURI);
       await expect(
         token.transferFrom(owner.address, ethers.constants.AddressZero, 1)
       ).to.be.revertedWith("Invalid address");
     });
 
     it("Should revert if sender is not owner", async () => {
-      await token.mint(owner.address, 1);
+      await token.mint(owner.address, 1, tokenURI);
       await expect(
         token.connect(user1).transferFrom(user1.address, user2.address, 1)
       ).to.be.revertedWith("Not owner");
     });
 
     it("Should handle operator approvals", async () => {
-      await token.mint(owner.address, 1);
+      await token.mint(owner.address, 1, tokenURI);
       await token.setApprovalForAll(user1.address, true);
       await token.connect(user1).transferFrom(owner.address, user2.address, 1);
       expect(await token.ownerOf(1)).to.equal(user2.address);
     });
 
     it("Should transfer token with operator approval", async () => {
-      await token.mint(owner.address, 1);
+      await token.mint(owner.address, 1, tokenURI);
       await token.approve(user1.address, 1);
       await token.connect(user1).transferFrom(owner.address, user2.address, 1);
       expect(await token.ownerOf(1)).to.equal(user2.address);
     });
 
     it("Should succeed if sender is approved for token", async () => {
-      await token.mint(owner.address, 1);
+      await token.mint(owner.address, 1, tokenURI);
       await token.connect(owner).approve(user1.address, 1);
       await expect(
         token.connect(user1).transferFrom(owner.address, user2.address, 1)
@@ -251,7 +251,7 @@ describe("MyERC721", () => {
     });
 
     it("Should succeed if sender is approved for all tokens", async () => {
-      await token.mint(owner.address, 1);
+      await token.mint(owner.address, 1, tokenURI);
       await token.connect(owner).setApprovalForAll(user1.address, true);
       await expect(
         token.connect(user1).transferFrom(owner.address, user2.address, 1)
@@ -261,7 +261,7 @@ describe("MyERC721", () => {
 
   describe("safeTransferFrom", () => {
     it("Should transfer token", async () => {
-      await token.mint(owner.address, 1);
+      await token.mint(owner.address, 1, tokenURI);
       await token["safeTransferFrom(address,address,uint256)"](
         owner.address,
         user1.address,
@@ -285,7 +285,7 @@ describe("MyERC721", () => {
     });
 
     it("Should revert if sender is not owner", async () => {
-      await token.mint(owner.address, 1);
+      await token.mint(owner.address, 1, tokenURI);
       await expect(
         token
           .connect(user1)
@@ -299,7 +299,7 @@ describe("MyERC721", () => {
     });
 
     it("Should revert if sender is not approved", async () => {
-      await token.mint(owner.address, 1);
+      await token.mint(owner.address, 1, tokenURI);
       await expect(
         token
           .connect(user2)
@@ -313,7 +313,7 @@ describe("MyERC721", () => {
     });
 
     it("Should succeed if sender is approved for token (getApproved(tokenId) == _msgSender())", async () => {
-      await token.mint(owner.address, 1);
+      await token.mint(owner.address, 1, tokenURI);
       await token.connect(owner).approve(user1.address, 1);
       await expect(
         token
@@ -328,7 +328,7 @@ describe("MyERC721", () => {
     });
 
     it("Should succeed if sender is not approved for token, but approved for all", async () => {
-      await token.mint(owner.address, 1);
+      await token.mint(owner.address, 1, tokenURI);
       await token.connect(owner).setApprovalForAll(user1.address, true);
       await expect(
         token
@@ -343,7 +343,7 @@ describe("MyERC721", () => {
     });
 
     it("Should work with data", async () => {
-      await token.mint(owner.address, 1);
+      await token.mint(owner.address, 1, tokenURI);
       await token["safeTransferFrom(address,address,uint256,bytes)"](
         owner.address,
         user1.address,
@@ -357,7 +357,7 @@ describe("MyERC721", () => {
       const invalidContract = await (
         await ethers.getContractFactory("InvalidERC721Receiver")
       ).deploy();
-      await token.mint(user1.address, 1);
+      await token.mint(user1.address, 1, tokenURI);
 
       await expect(
         token
@@ -394,7 +394,7 @@ describe("MyERC721", () => {
         await ethers.getContractFactory("ERC721ReceiverMock")
       ).deploy();
 
-      await token.mint(owner.address, 1);
+      await token.mint(owner.address, 1, tokenURI);
 
       await expect(
         token["safeTransferFrom(address,address,uint256)"](

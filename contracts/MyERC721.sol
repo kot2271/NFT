@@ -22,8 +22,8 @@ contract MyERC721 is Context, IERC165, IERC721, IERC721Metadata, Ownable {
     // Token symbol
     string private _symbol;
 
-    // Base URI for token metadata
-    string private _baseURI;
+    // Mapping from token ID to token URI
+    mapping(uint256 => string) private _tokenURIs;
 
     // Mapping from token ID to owner address
     mapping(uint256 => address) private _owners;
@@ -37,14 +37,9 @@ contract MyERC721 is Context, IERC165, IERC721, IERC721Metadata, Ownable {
     // Mapping from owner to operator approvals
     mapping(address => mapping(address => bool)) private _operatorApprovals;
 
-    constructor(
-        string memory name_,
-        string memory symbol_,
-        string memory baseURI_
-    ) Ownable() {
+    constructor(string memory name_, string memory symbol_) Ownable() {
         _name = name_;
         _symbol = symbol_;
-        _baseURI = baseURI_;
     }
 
     /**
@@ -106,10 +101,8 @@ contract MyERC721 is Context, IERC165, IERC721, IERC721Metadata, Ownable {
         uint256 tokenId
     ) public view virtual override returns (string memory) {
         require(_exists(tokenId), "Nonexistent token");
-        return
-            bytes(_baseURI).length > 0
-                ? string(abi.encodePacked(_baseURI, Strings.toString(tokenId)))
-                : "";
+        string memory _tokenURI = _tokenURIs[tokenId];
+        return _tokenURI;
     }
 
     /**
@@ -233,9 +226,14 @@ contract MyERC721 is Context, IERC165, IERC721, IERC721Metadata, Ownable {
      * @param to The address to assign the token to.
      * @param tokenId The token identifier.
      */
-    function mint(address to, uint256 tokenId) external onlyOwner {
+    function mint(
+        address to,
+        uint256 tokenId,
+        string memory _tokenURI
+    ) external onlyOwner {
         require(to != address(0), "Invalid address");
         require(!_exists(tokenId), "Token already exists");
+        _tokenURIs[tokenId] = _tokenURI;
 
         _mint(to, tokenId);
     }
